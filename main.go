@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	userHeight := 1.82
+	var userHeight = 1.82
 	userWeight := 95.0
 	BMI := userWeight / math.Pow(userHeight, 2);
 

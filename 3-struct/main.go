@@ -1,31 +1,20 @@
 package main
 
-import "time"
+import (
+	"demo/json/bins"
+	"demo/json/storage"
+	"time"
+)
 
-type Bin struct {
-	Id        string
-	Private   bool
-	CreatedAt time.Time
-	Name      string
+func main() {
+	binList := bins.NewBindList()
+
+	bin := bins.NewBin("1", true, time.Now(), "123123")
+	binList.Bins = append(binList.Bins, *bin)
+	storage.SaveBins("bins.json", *binList)
+
+	bin2 := bins.NewBin("2", true, time.Now(), "qweqweqwe")
+	binList.Bins = append(binList.Bins, *bin2)
+
+	storage.SaveBins("bins.json", *binList)
 }
-
-type BinList struct {
-	Bins []Bin
-}
-
-func NewBin(id string, private bool, createdAt time.Time, name string) *Bin {
-	return &Bin{
-		Id:        id,
-		Private:   private,
-		CreatedAt: createdAt,
-		Name:      name,
-	}
-}
-
-func NewBindList(bins []Bin) *BinList {
-	return &BinList{
-		Bins: bins,
-	}
-}
-
-func main() {}

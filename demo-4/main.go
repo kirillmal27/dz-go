@@ -1,75 +1,89 @@
 package main
 
 import (
-	"errors"
+	"demo/password/account"
+	"encoding/json"
 	"fmt"
-	"math/rand"
-	"net/url"
+
+	"github.com/fatih/color"
 )
 
-type account struct {
-	login    string
-	password string
-	url      string
-}
-
-func (a *account) generatePassword(length int) {
-	res := make([]rune, length)
-
-	for i := range res {
-		res[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-
-	a.password = string(res)
-}
-
-func (a account) outputPssword(acc *account) {
-	fmt.Println(acc)
-}
-
-func newAccount(login, password, urlString string) (*account, error) {
-	_, err := url.ParseRequestURI(urlString)
-
-	if len(login) == 0 {
-		return nil, errors.New("invalid login")
-	}
-
-	if err != nil {
-		return nil, errors.New("INVALID_URL")
-	}
-
-	acc := &account{
-		login:    login,
-		password: password,
-		url:      urlString,
-	}
-
-	if len(acc.password) == 0 {
-		acc.generatePassword(12)
-	}
-
-	return acc, nil
-}
+type someFunc = func(string, string) bool
 
 func main() {
-	login := promtData("Введите логин")
-	password := promtData("Введите пароль")
-	url := promtData("Введите url")
+	vault := account.NewVault()
+Menu:
+	for {
+		userChoice := promtData([]string{
+			"1: Создать аккаунт",
+			"2: Найти аккаунт по URL",
+			"3: Найти аккаунт по логину",
+			"4: Удалить аккаунт",
+			"5: Выход",
+			"Выберите вариант",
+		})
 
-	account1, err := newAccount(login, password, url)
+		switch userChoice {
+		case "1":
+			createAccount(vault)
+		case "2":
+			findAccountsByURL(vault)
+		case "3":
+			deleteAccount(vault)
+		case "4":
+			break Menu
+		}
+	}
+
+}
+
+func createAccount(vault *account.Vault) {
+	login := promtData([]string{"Введите логин"})
+	password := promtData([]string{"Введите пароль"})
+	url := promtData([]string{"Введите url"})
+
+	account1, err := account.NewAccount(login, password, url)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	fmt.Println(account1)
+	vault.AddAccount(*account1)
 }
 
-var letterRunes = []rune("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789-!*")
+func findAccountsByURL(vault *account.Vault) {
+	url := promtData([]string{"Введите URL для поиска"})
 
-func promtData(promt string) string {
-	fmt.Print(promt + ": ")
+	accounts := vault.FindAccountByURL(url)
+
+	b, err := json.MarshalIndent(accounts, "", "    ")
+	if err != nil {
+		color.Red("Ошибка маршалинга: %v", err)
+		return
+	}
+	fmt.Println(color.GreenString("%+v", string(b)))
+
+}
+
+func deleteAccount(vault *account.Vault) {
+	url := promtData([]string{"Введите URL для удаления"})
+
+	isDeleted := vault.DeleteAccountByURL(url)
+
+	if isDeleted {
+		color.Green("Удаление прошло успешно")
+	} else {
+		color.Red("Ничего не удалили")
+	}
+}
+
+func promtData[T any](promt []T) string {
 	var res string
+	for index, elem := range promt {
+		if index == len(promt)-1 {
+			fmt.Printf("%s :", elem)
+		}
+		fmt.Println(elem)
+	}
 	fmt.Scanln(&res)
 	return res
 }

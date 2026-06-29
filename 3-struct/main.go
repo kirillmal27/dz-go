@@ -8,13 +8,14 @@ import (
 
 func main() {
 	binList := bins.NewBindList()
+	var localStorage storage.Storage = storage.NewLocalStorage("bins.json")
 
 	bin := bins.NewBin("1", true, time.Now(), "123123")
 	binList.Bins = append(binList.Bins, *bin)
-	storage.SaveBins("bins.json", *binList)
+	localStorage.Save(*binList)
 
 	bin2 := bins.NewBin("2", true, time.Now(), "qweqweqwe")
 	binList.Bins = append(binList.Bins, *bin2)
 
-	storage.SaveBins("bins.json", *binList)
+	localStorage.Save(*binList)
 }

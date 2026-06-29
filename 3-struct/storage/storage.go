@@ -7,14 +7,29 @@ import (
 	"os"
 )
 
-func SaveBins(filepath string, binsList bins.BinList) {
+type Storage interface {
+	Save(binsList bins.BinList)
+	Read()
+}
+
+type LocalStorage struct {
+	filename string
+}
+
+func NewLocalStorage(filename string) *LocalStorage {
+	return &LocalStorage{
+		filename: filename,
+	}
+}
+
+func (storage *LocalStorage) Save(binsList bins.BinList) {
 	data, err := json.Marshal(binsList)
 	if err != nil {
 		fmt.Println("Не удалось распарсить файл: ", err)
 		return
 	}
 
-	err = os.WriteFile(filepath, data, 0644)
+	err = os.WriteFile(storage.filename, data, 0644)
 
 	if err != nil {
 		fmt.Println("Не удалось записать файл :", err)
@@ -22,8 +37,8 @@ func SaveBins(filepath string, binsList bins.BinList) {
 	}
 }
 
-func ReadBins(filepath string) {
-	data, err := os.ReadFile(filepath)
+func (storage *LocalStorage) Read() {
+	data, err := os.ReadFile(storage.filename)
 	if err != nil {
 		fmt.Println("Не удалось прочитать файл: ", err)
 		return
